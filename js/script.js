@@ -90,10 +90,11 @@ d3.tsv("data/CO23.tsv", function(error, data) {
       .call(yAxis)
     .append("text")
       .attr("transform", "rotate(-90)")
+      .attr("x", -height)
       .attr("y", 6)
       .attr("dy", ".71em")
-      .style("text-anchor", "end")
-      .text("");
+      .style("text-anchor", "start")
+      .text("% Change in CO2 Emissions");
 
     svg
     	.append("line")
@@ -124,8 +125,9 @@ d3.tsv("data/CO23.tsv", function(error, data) {
       .attr("attribute",function(d){return d.name})
       .attr("tabID","co2")
       .style("stroke", function(d,i) { 
-      	var c = 350 - (d.values[13].co2 * -3)
-        var color = "hsl(" + c + ",100%,50%)"
+      	var c = 350 - (d.values[13].co2 * -3);
+        // var color = "hsl(" + c + ",100%,50%)"
+        var color = "#111"
         return color;        
       })
       .style("stroke-opacity","0.4")
@@ -142,6 +144,9 @@ d3.tsv("data/CO23.tsv", function(error, data) {
 
     svg.append("text")
     	.attr("class","highlightText")
+      .attr("name",function(d){
+        return cities[44].name;
+      })
     	.attr("x",width)
     	.attr("y","0")
     	.text(function(d){
@@ -152,14 +157,14 @@ d3.tsv("data/CO23.tsv", function(error, data) {
     		return state + ": " + amount + "%"
     	})
 
-  // svg.append("text")
-  //     .datum(function(d) { return {name: d.name, value: d.values[d.values.length - 1]}; })
-  //     .attr("transform", function(d) { return "translate(" + x(d.value.date) + "," + y(d.value.co2) + ")"; })
-  //     .attr("x", 3)
-  //     .attr("dy", ".35em")
-  //     .text(function(d) { return d.name; });
 
+      // svg.append("text")
+      //   .attr("class","highlightText2")
+      //   .attr("x",width-10)
+      //   .attr("y","35")
+      //   .text("CO2 Emissions Change (Million Tonnes)")
 
+ 
 	d3.selectAll(".tab").on("click", function() {
 		d3.selectAll(".tab").attr("class","tab");
 		this.className = "tab active";
@@ -201,18 +206,36 @@ d3.tsv("data/CO23.tsv", function(error, data) {
 	
 
 		function Highlight(sug) {
+      var type = d3.select('[attribute="'+ sug +'"]')[0][0].attributes.tabID.value; 
+
+      console.log(type)
 
 			// Call d3 THIS highlight, everything else lowlight
-			d3.selectAll(".line").style("stroke-opacity","0.15")
-			d3.select('[attribute="'+ sug +'"]').style("stroke-opacity","0.8")        	
+			d3.selectAll(".line").style("stroke-opacity","0.15").style("stroke","#111")
+
+      d3.select('[attribute="'+ sug +'"]')
+        .style("stroke-opacity","0.8") 
+        .style("stroke", function(d,i) { 
+          var c = 350 - (d.values[13][type] * -3)
+          var color = "hsl(" + c + ",100%,50%)"
+          return color;        
+        })    
+
+
 			d3.select('[attribute="US Average"]').style("stroke-opacity","0.8")
 			d3.select(".highlightText")
+        .attr("name",sug)
 				.text(function(d){					
 					var data = d3.select('[attribute="'+ sug +'"]')[0][0].__data__;
-		    		var type = d3.select('[attribute="'+ sug +'"]')[0][0].attributes.tabID.value; 
 		    		var state = data.name;
 		    		var amount = data.values[13][type]    	
-		    		return state + ": " + amount + "%"
+            if (amount > 0) {
+              var plus = "+"
+            } else {
+              var plus = ""
+            };
+
+		    		return state + ": " + plus + amount + "%"
 	    		})
 			pymChild.sendHeight();
 		}	
@@ -220,7 +243,37 @@ d3.tsv("data/CO23.tsv", function(error, data) {
 		function update(tabID) {				
 			var w = parseInt(d3.select("#master_container").style("width"))
 
+      d3.selectAll('.y.axis').remove();
+      // d3.select(".baseline").remove();
+      d3.selectAll(".USText").remove();
+
 			var city = svg.selectAll(".city").selectAll("path")
+
+      if (tabID == "co2") {
+        // y.domain([
+        //   -550,300
+        // ]);
+        var ctext = "% Change in CO2 Emissions";
+
+      } else if (tabID == "cintensity") {
+        // y.domain([
+        //   -10,6
+        // ]);
+        var ctext = "% Change in Carbon Intensity";
+      } else {
+        var ctext = "% Change in Energy Intensity"
+      };
+
+  svg.append("g")
+      .attr("class", "y axis")
+      .call(yAxis)
+    .append("text")
+      .attr("transform", "rotate(-90)")
+      .attr("x", -height)
+      .attr("y", 6)
+      .attr("dy", ".71em")
+      .style("text-anchor", "start")
+      .text(ctext);
 
 			city.transition()
 			   	.duration(1000)
@@ -232,12 +285,30 @@ d3.tsv("data/CO23.tsv", function(error, data) {
 					return line(d.values)
 				})
 				.attr("tabID",tabID)
-			    .style("stroke", function(d,i) { 
-			      	var c = 350 - (d.values[13][tabID] * -3)
-			        var color = "hsl(" + c + ",100%,50%)"
-			        return color;        
-			      })		
+			    // .style("stroke", function(d,i) { 
+			    //   	var c = 350 - (d.values[13][tabID] * -3)
+			    //     var color = "hsl(" + c + ",100%,50%)"
+			    //     return color;        
+			    //   })		
 			    // .style("stroke-opacity","0.4")
+
+      d3.select(".highlightText")
+        .text(function(d){          
+          
+          var name = this.attributes.name.value;            
+          var data = d3.select('[attribute="'+ name +'"]')[0][0].__data__;        
+            // var type = d3.select('[attribute="'+ sug +'"]')[0][0].attributes.tabID.value; 
+            var state = data.name;
+            var amount = data.values[13][tabID]      
+            // var amount = data.values[7][tabID]    
+            if (amount > 0) {
+              var plus = "+"
+            } else {
+              var plus = ""
+            };
+
+            return state + ": " + plus + amount + "%"
+          })
 
 			pymChild.sendHeight();
 		}			
