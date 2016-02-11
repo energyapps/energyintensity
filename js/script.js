@@ -149,8 +149,7 @@ d3.tsv("data/CO23.tsv", function(error, data) {
       })
     	.attr("x",width)
     	.attr("y","0")
-    	.text(function(d){
-    		console.log()
+    	.text(function(d){    		
     		var type = "co2" 
     		var state = cities[44].name;
     		var amount = cities[44].values[13][type]    	
@@ -206,9 +205,7 @@ d3.tsv("data/CO23.tsv", function(error, data) {
 	
 
 		function Highlight(sug) {
-      var type = d3.select('[attribute="'+ sug +'"]')[0][0].attributes.tabID.value; 
-
-      console.log(type)
+      var type = d3.select('[attribute="'+ sug +'"]')[0][0].attributes.tabID.value;       
 
 			// Call d3 THIS highlight, everything else lowlight
 			d3.selectAll(".line").style("stroke-opacity","0.15").style("stroke","#111")

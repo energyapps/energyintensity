@@ -59,7 +59,7 @@ Map
 
         .rowDOE h1, .rowDOE h2, .rowDOE h3, .rowDOE h4 {
             /*text-align: center;*/
-            border:none
+            border:none !important;
         }
 
         .rowDOE h1 {
